@@ -105,7 +105,7 @@ function SavingsCalculator() {
 
     try {
       const response = await axios.post(
-        "https://saascalculator-backend.onrender.com", // Make sure this URL is correct for your backend
+        "https://saascalculator-backend.onrender.com/api/companydetail", // Make sure this URL is correct for your backend
         {
           ...formData,
           currentSpend: Number(formData.currentSpend),
