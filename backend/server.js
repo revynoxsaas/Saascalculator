@@ -94,11 +94,12 @@ try {
 
 // --- Express Middleware Setup ---
 console.log('3. Applying Express middleware...');
-app.use(cors({
-  origin: 'https://saascalculator.revynox.com', // your Vercel frontend URL
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true
-}));
+// app.use(cors({
+//   origin: 'https://saascalculator.revynox.com', // your Vercel frontend URL
+//   methods: ['GET', 'POST', 'PUT', 'DELETE'],
+//   credentials: true
+// }));
+app.use(cors());
 app.use(express.json()); // Parse incoming JSON request bodies
 
 // --- Static File Serving (REMOVED for email image, as it's now Cloudinary) ---
