@@ -26,13 +26,14 @@ const initialFormData = {
   companyName: "",
   designation: "",
   selectedProduct: PRODUCTS[0].id,
-  currentSpend: 1000,
+  currentSpend: 50000,
 };
 
 function SavingsCalculator() {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState(initialFormData);
   const [savings, setSavings] = useState(null);
+  const [isLoading, setIsLoading] = useState(false); // New loading state
   const { toast } = useToast();
 
   useEffect(() => {
@@ -85,9 +86,11 @@ function SavingsCalculator() {
   const prevStep = () => setStep((prev) => Math.max(1, prev - 1));
 
   const calculateAndSendSavings = async () => {
+    setIsLoading(true); // Start loading animation
     const product = PRODUCTS.find(p => p.id === formData.selectedProduct);
     if (!product) {
       toast({ title: "Error", description: "Selected product not found.", variant: "destructive" });
+      setIsLoading(false); // Stop loading on error
       return;
     }
 
@@ -105,7 +108,7 @@ function SavingsCalculator() {
 
     try {
       const response = await axios.post(
-        "https://saascalculator-backend.onrender.com/api/companydetail", // Make sure this URL is correct for your backend
+        "https://saascalculator-backend.onrender.com/api/companydetail",
         {
           ...formData,
           currentSpend: Number(formData.currentSpend),
@@ -121,6 +124,8 @@ function SavingsCalculator() {
     } catch (error) {
       console.error("Error submitting form data:", error);
       toast({ title: "Error", description: error.response?.data?.error || "Something went wrong during submission.", variant: "destructive" });
+    } finally {
+      setIsLoading(false); // Stop loading animation regardless of success or failure
     }
   };
   
@@ -131,10 +136,8 @@ function SavingsCalculator() {
     toast({ title: "Reset!", description: "Calculator has been reset." });
   };
 
-  // UPDATED: handleBookACall function to redirect in the same window/tab without toast/reset
   const handleBookACall = () => {
     const calendlyLink = "https://calendly.com/ashish-revynox/30min";
-    // Redirect immediately without showing toast or resetting calculator
     window.location.href = calendlyLink; 
   };
 
@@ -230,8 +233,20 @@ function SavingsCalculator() {
               <Button onClick={prevStep} variant="outline" className="text-foreground border-border hover:bg-accent hover:text-accent-foreground">
                 <ArrowLeft className="mr-2 h-4 w-4" /> Back
               </Button>
-              <Button onClick={nextStep} className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white">
-                Calculate Savings <Percent className="ml-2 h-4 w-4" />
+              <Button 
+                onClick={nextStep} 
+                disabled={isLoading} // Disable button while loading
+                className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white"
+              >
+                {isLoading ? ( // Show spinner and "Calculating..." text
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> Calculating...
+                  </>
+                ) : (
+                  <>
+                    Calculate Savings <Percent className="ml-2 h-4 w-4" />
+                  </>
+                )}
               </Button>
             </CardFooter>
           </motion.div>
@@ -292,7 +307,6 @@ function SavingsCalculator() {
               <Button onClick={resetCalculator} variant="outline" className="w-full sm:w-auto text-lg px-8 py-6 text-foreground border-border hover:bg-accent hover:text-accent-foreground">
                 <RefreshCw className="mr-2 h-5 w-5" /> Start Over
               </Button>
-              {/* Updated button to "Book a Call" with Calendly redirection */}
               <Button onClick={handleBookACall} className="w-full sm:w-auto text-lg px-8 py-6 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white">
                  <CalendarDays className="mr-2 h-5 w-5" /> Book a Call 
               </Button>
@@ -306,6 +320,20 @@ function SavingsCalculator() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 animated-gradient-bg">
+      {/* Loading bar at the top */}
+      <AnimatePresence>
+        {isLoading && (
+          <motion.div
+            key="loading-top-bar"
+            initial={{ width: "0%" }}
+            animate={{ width: "100%" }}
+            exit={{ width: "0%" }}
+            transition={{ duration: 0.8, ease: "easeInOut" }} // Adjust duration and ease as needed
+            className="fixed top-0 left-0 h-1 bg-gradient-to-r from-blue-400 to-purple-500 z-50"
+          />
+        )}
+      </AnimatePresence>
+
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
